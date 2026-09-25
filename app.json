@@ -1,0 +1,18 @@
+{
+  "pages": [
+    "pages/home/home",
+    "pages/index/index",
+    "pages/investment/investment",
+    "pages/break-even/break-even",
+    "pages/report/report",
+    "pages/guide/guide"
+  ],
+  "window": {
+    "navigationBarTitleText": "油站经营与投资测算",
+    "navigationBarBackgroundColor": "#004b8d",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f3f8fc"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

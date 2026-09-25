@@ -1,0 +1,9 @@
+@import "../../lib/investment-form.wxss";
+.growth-head,.growth-row{grid-template-columns:120rpx minmax(0,1fr)}
+
+.break-even-product{border-top:1rpx solid #d9e5ee;margin-top:28rpx;padding-top:24rpx}
+.break-even-result{margin-top:28rpx;border-top:1rpx solid #d9e5ee;padding-top:28rpx}
+.break-even-volume{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12rpx;padding:18rpx 0;border-bottom:1rpx solid #edf2f7;font-size:28rpx}
+.break-even-volume text:last-child{font-weight:700;color:#005b96}
+
+.break-even-volume text{min-width:0;overflow-wrap:anywhere}

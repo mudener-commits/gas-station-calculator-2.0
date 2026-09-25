@@ -1,0 +1,4 @@
+@import "../../lib/investment-form.wxss";
+.source-list{max-height:480rpx}.source{padding:20rpx;border:1rpx solid #dbe7ef;border-radius:14rpx;margin-bottom:16rpx}.source.selected{border-color:#0072bc;background:#f3faff}.source-value{color:#004b8d;font-weight:700;font-size:26rpx;margin-top:8rpx}picker{margin:18rpx 0}.cash-table{width:1330rpx;font-size:24rpx}.cash-row{display:grid;grid-template-columns:70rpx repeat(5,250rpx);border-bottom:1rpx solid #e0eaf2;padding:20rpx 0;gap:0}.cash-row text{padding:0 10rpx}.heading{color:#53718a;background:#f6faff;font-weight:700}
+.cash-row:not(.heading) text:nth-child(n+3){color:#c93643;font-weight:600}
+
