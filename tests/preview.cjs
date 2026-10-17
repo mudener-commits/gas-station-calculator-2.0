@@ -13,13 +13,14 @@ const investment=invest.calculate(f);const report=reports.investment(investment)
 const dataMap=new Map();
 global.wx={getStorageSync:k=>dataMap.get(k)||'',setStorageSync:(k,v)=>dataMap.set(k,v),showShareMenu(){},showModal(){},showToast(){},pageScrollTo(){},navigateTo(){}};
 function pageData(name,kind) {
+ const scenario={...f,selfOwned:kind==='self-owned'};
  const file=path.join(root,'pages',name,name+'.js');let p;
  vm.runInNewContext(fs.readFileSync(file,'utf8'),{require:createRequire(file),wx:global.wx,Page:x=>{p=x},console});
  p.data=structuredClone(p.data);p.setData=function(change,cb){for(const[k,v]of Object.entries(change)){const parts=k.replace(/\[(\d+)\]/g,'.$1').split('.');let x=this.data;while(parts.length>1)x=x[parts.shift()];x[parts[0]]=v;}if(cb)cb();};
  if(p.onLoad)p.onLoad({});
  if(name==='index'){p.sample();p.nameInput({detail:{value:'城南站'}});p.calculate({currentTarget:{dataset:{period:'year'}}});p.saveHistory();}
- if(name==='investment'){p.setData({form:f});p.refreshGrowth();p.refreshFunding();p.calculate();}
- if(name==='break-even'){p.setData({form:f});p.refreshFunding();p.calculateBreakEven();}
+ if(name==='investment'){p.setData({form:scenario});p.refreshGrowth();p.refreshFunding();p.calculate();}
+ if(name==='break-even'){p.setData({form:scenario});p.refreshFunding();p.calculateBreakEven();}
  if(name==='report')p.data.report=kind==='break-even'?reports.breakEven(be.calculate(f,be.initialInputs())):kind==='operating'?reports.operating(o.calculate(o.sample(true)),'城南站'):report;
  return p.data;
 }
@@ -29,11 +30,11 @@ function html(node){
  const kind=(node.tag||'virtual').replace('wx-',''),a=node.attr||{};
  if(kind==='virtual'||kind==='page')return(node.children||[]).map(html).join('');
  const tags={view:'div',text:'span',image:'img',input:'input',button:'button',picker:'div','scroll-view':'div',switch:'input',radio:'input','radio-group':'div',label:'label',canvas:'canvas',swiper:'div','swiper-item':'div'};
- const tag=tags[kind]||'div';const attr={};
+ const tag=kind==='checkbox'?'input':tags[kind]||'div';const attr={};
  for(const k of ['id','class','value','placeholder','disabled'])if(a[k]!==undefined&&a[k]!==false)attr[k]=a[k];
  if(kind==='image')attr.src='/asset'+a.src;
  if(kind==='scroll-view')attr.style='overflow:auto';
- if(kind==='switch'){attr.type='checkbox';if(a.checked)attr.checked='checked';}
+ if(kind==='switch'||kind==='checkbox'){attr.type='checkbox';attr.style='width:18px;height:18px;flex:0 0 18px;margin:0';if(a.checked)attr.checked='checked';}
  else if(kind==='radio'){attr.type='radio';attr.style='width:18px;height:18px;min-width:18px;flex:0 0 18px;padding:0;margin:0;background:none;border:0';if(a.checked)attr.checked='checked';}
  else if(kind==='input')attr.type='text';
  return '<'+tag+Object.entries(attr).map(([k,v])=>' '+k+'="'+escape(v)+'"').join('')+'>'+(['input','img'].includes(tag)?'':(node.children||[]).map(html).join('')+'</'+tag+'>');

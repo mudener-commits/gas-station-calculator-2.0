@@ -26,6 +26,10 @@ async function main(){
   const inputs=be.initialInputs();inputs[0].ratio=40;inputs[3].ratio=10;
   const thresholdReport=reports.breakEven(be.calculate(threshold,inputs));
   cases.push(['盈亏平衡销量报告',thresholdReport],['盈亏平衡销量简要版',reports.brief(thresholdReport)]);
+  threshold.selfOwned=true;threshold.name='示例自有站';threshold.annualEbitda=1000000;
+  const ownedInvestment=reports.investment(inv.calculate(threshold));
+  const ownedBreakEven=reports.breakEven(be.calculate(threshold,inputs));
+  cases.push(['自有站投资报告',ownedInvestment],['自有站投资简要版',reports.brief(ownedInvestment)],['自有站销量报告',ownedBreakEven],['自有站销量简要版',reports.brief(ownedBreakEven)]);
   for(const[name,report]of cases){
     const c=createCanvas(750,100),ctx=c.getContext('2d');
     const plan=layout(report,(t,s,b,family='sans-serif')=>{ctx.font=(b?'bold ':'')+s+'px '+family;return ctx.measureText(t).width;});

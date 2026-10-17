@@ -28,6 +28,31 @@ function environment() {
   return { stored, calls, modals, load };
 }
 const event = (key, value) => ({ currentTarget:{dataset:{key}},detail:{value} });
+test('两计算器自有站勾选切换、资金预览、草稿恢复及旧条件保留', () => {
+  const env = environment(), storage = require('../lib/storage');
+  for (const name of ['investment', 'break-even']) {
+    const p = env.load(name); p.onLoad({}); p.sample();
+    p.choice(event('mode', '4')); p.input(event('rent', '200000'));
+    assert.equal(p.data.funding, '290.00 万元');
+    if (name === 'investment') p.calculate(); else p.calculateBreakEven();
+    p.selfOwnedChange({ detail: { value: ['self-owned'] } });
+    assert.equal(p.data.form.selfOwned, true); assert.equal(p.data.funding, '250.00 万元');
+    assert.equal(name === 'investment' ? p.data.result : p.data.breakEvenResult, null);
+    assert.equal(p.data.form.rent, '200000'); assert.equal(p.data.form.mode, 4);
+    if (name === 'investment') { p.calculate(); p.savePlan(); }
+    else p.calculateBreakEven();
+    p.report(); assert.match(JSON.stringify(storage.read(storage.KEYS.report)), /自有站经营/);
+    p.onHide(); const restored = env.load(name); restored.onLoad({});
+    assert.equal(restored.data.form.selfOwned, true);
+    restored.selfOwnedChange({ detail: { value: [] } }); assert.equal(restored.data.funding, '290.00 万元');
+    assert.equal(restored.data.form.rent, '200000');
+    if (name === 'investment') {
+      restored.restorePlan({ currentTarget: { dataset: { id: p.data.plans[0].id } } });
+      assert.equal(restored.data.form.selfOwned, true);
+    }
+  }
+  assert.equal(env.modals.length, 0); delete global.wx;
+});
 test('历史与默认的不含税价格恢复为含税输入，原存档不修改', () => {
   const env=environment(),p=env.load('index'),o=require('../lib/operating'),s=require('../lib/storage');
   const old={...o.sample(true),customPrice:true,taxMode:'net'};
@@ -123,16 +148,17 @@ test('简要与完整图片独立生成、预览、保存和分享，失败不�
   p.setData({exporting:true});await p.generate(full);assert.equal(count,2);
   delete global.wx;
 });
-test('微信编译器实际渲染六个页面，动态表单与事件有效', {skip:!fs.existsSync(compiler)}, () => {
-  const env=environment();const names=['home','index','investment','break-even','report','guide'];
+test('微信编译器实际渲染七个页面，动态表单与事件有效', {skip:!fs.existsSync(compiler)}, () => {
+  const env=environment();const names=['home','index','marketing','investment','break-even','report','guide'];
   const compiled=execFileSync(compiler,names.map(n=>'pages/'+n+'/'+n+'.wxml'),{cwd:root,encoding:'utf8'});
   const runtimeErrors=[];const context={window:{},console:{warn:x=>runtimeErrors.push(x),log:x=>runtimeErrors.push(x)}};vm.createContext(context);vm.runInContext(compiled,context);
   function visit(node,fn){if(!node||typeof node!=='object')return;fn(node);(node.children||[]).forEach(n=>visit(n,fn));}
-  for(const name of names){const p=env.load(name);if(p.onLoad)p.onLoad({});if(name==='index'){p.sample();p.calculate({currentTarget:{dataset:{period:'year'}}});p.report();}if(name==='investment'){p.sample();p.calculate();p.report();}
+  for(const name of names){const p=env.load(name);if(p.onLoad)p.onLoad({});if(name==='index'){p.sample();p.calculate({currentTarget:{dataset:{period:'year'}}});p.report();}if(name==='marketing'){p.sample();p.calculate();assert.equal(p.data.result.status,'solved');}if(name==='investment'){p.sample();p.calculate();p.report();}
     if(name==='break-even'){p.sample();p.calculateBreakEven();assert.equal(p.data.breakEvenResult.accounting.status,'solved');p.report();}
     const render=context.$gwx('pages/'+name+'/'+name+'.wxml');const tree=render(p.data,{});assert.ok(tree.children.length);
     const inputs=[];visit(tree,n=>{if(n.tag==='wx-input')inputs.push(n);for(const [k,v]of Object.entries(n.attr||{})){if(/^bind/.test(k))assert.equal(typeof p[v],'function',name+': '+v);}});
     if(name==='index'){assert.ok(inputs.length>=18);const volume=inputs.find(n=>n.attr['data-key']==='vol92');assert.equal(volume.attr.value,5000);}
+    if(name==='marketing'){assert.ok(inputs.length>=12);assert.ok(inputs.some(n=>n.attr['data-key']==='volume'&&n.attr.value===5000));}
     if(name==='investment'){
       assert.ok(inputs.length>=20);let suffixes=0;
       visit(tree,n=>{if(n.attr&&n.attr.class==='growth-percent')suffixes++;});assert.equal(suffixes,10);
@@ -142,6 +168,15 @@ test('微信编译器实际渲染六个页面，动态表单与事件有效', {s
       p.choice(event('mode',mode)); const alt=render(p.data,{});const radios=[];
       visit(alt,n=>{assert.notEqual(n.tag,'wx-picker');if(n.tag==='wx-radio')radios.push(n);});
       assert.ok(radios.length>=7); if(mode===4)assert.ok(radios.some(n=>n.attr.value===5||n.attr.value==='5'));
+    }
+    if(name==='investment'||name==='break-even') {
+      p.selfOwnedChange({detail:{value:['self-owned']}});
+      const own = render(p.data, {}); let checkbox = 0, modeRadios = 0, rentInput = 0;
+      visit(own,n=>{if(n.tag==='wx-checkbox'&&n.attr.value==='self-owned'){checkbox++;assert.equal(n.attr.checked,true);}
+        if(n.tag==='wx-radio-group'&&n.attr['data-key']==='mode')modeRadios++;
+        if(n.tag==='wx-input'&&n.attr['data-key']==='rent')rentInput++;
+        for(const [k,v]of Object.entries(n.attr||{}))if(/^bind/.test(k))assert.equal(typeof p[v],'function');});
+      assert.equal(checkbox,1);assert.equal(modeRadios,0);assert.equal(rentInput,0);
     }
     if(name==='index'){
       p.switchField(event('hasLng',true));const alt=render(p.data,{});let lng=0;
@@ -221,12 +256,12 @@ test('原内嵌倒推草稿只迁移一次，后续投资编辑不覆盖独立�
   function storageCheck(){const again=env.load('investment');again.onLoad({});assert.equal(s.read(s.KEYS.breakEvenDraft).form.rent,'67890');assert.equal(again.data.form.rent,'99999');}
   assert.equal(env.modals.length,0);delete global.wx;
 });
-test('首页三入口注册有效，投资页面已移除倒推表单', () => {
+test('首页四入口注册有效，投资页面已移除倒推表单', () => {
   const env=environment(),home=env.load('home');const app=JSON.parse(fs.readFileSync(path.join(root,'app.json')));
-  for(const page of ['index/index','investment/investment','break-even/break-even']) {
+  for(const page of ['index/index','marketing/marketing','investment/investment','break-even/break-even']) {
     home.open({currentTarget:{dataset:{page}}});assert.equal(env.calls.at(-1).url,'/pages/'+page);assert.ok(app.pages.includes('pages/'+page));
   }
-  const html=fs.readFileSync(path.join(root,'pages/home/home.wxml'),'utf8');assert.equal((html.match(/class="entry"/g)||[]).length,3);assert.match(html,/盈亏平衡销量计算器/);
+  const html=fs.readFileSync(path.join(root,'pages/home/home.wxml'),'utf8');assert.equal((html.match(/class="entry"/g)||[]).length,4);assert.match(html,/营销活动保利计算器/);assert.match(html,/盈亏平衡销量计算器/);
   assert.ok(!fs.readFileSync(path.join(root,'pages/investment/investment.wxml'),'utf8').includes('break-even'));
   const p=env.load('investment');assert.equal(p.calculateBreakEven,undefined);delete global.wx;
 });

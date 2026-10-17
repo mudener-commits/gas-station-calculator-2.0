@@ -27,6 +27,11 @@ Page({
   onHide() { this.persistDraft(); },
   onUnload() { this.persistDraft(); },
   persistDraft() { try { storage.write(storage.KEYS.draft, { ...storage.read(storage.KEYS.draft, {}), form: this.data.form, source: this.data.source }); } catch (_) { /* Explicit save remains available and reports storage errors. */ } },
+  refreshGrowth() {
+    financialForm.refreshGrowth.call(this);
+    const value = this.data.form.annualEbitda;
+    this.setData({ annualEbitdaDisplay: this.data.source && value !== '' && Number.isFinite(Number(value)) ? String(Math.round(Number(value))) : value });
+  },
   refreshSources() {
     const key = this.data.sourceTab === 'recent' ? storage.KEYS.recent : storage.KEYS.history;
     this.setData({ sources: storage.list(key).map(r => {

@@ -41,7 +41,12 @@
         "value": "package.json"
       }
     ],
-    "include": []
+    "include": [
+      {
+        "type": "file",
+        "value": "images/share-card-5x4.png"
+      }
+    ]
   },
   "editorSetting": {}
 }

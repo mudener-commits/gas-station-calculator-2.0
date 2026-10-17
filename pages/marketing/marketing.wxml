@@ -1,0 +1,62 @@
+<view class="page marketing-page">
+  <view class="title">营销活动保利计算器</view>
+  <view class="muted">降价后每天要多卖多少？涨价后销量最多能少多少？以活动前的经营利润为比较基准。</view>
+
+  <view class="tabs marketing-tabs">
+    <button class="btn {{form.mode === 'discount' ? 'active' : 'secondary'}}" data-mode="discount" bindtap="modeChange">降价 / 做活动</button>
+    <button class="btn {{form.mode === 'raise' ? 'active' : 'secondary'}}" data-mode="raise" bindtap="modeChange">涨价 / 提高利润率</button>
+  </view>
+
+  <view class="card">
+    <view class="section-title">01 · 活动条件</view>
+    <view class="field"><text>站点 / 活动名称（选填）</text><input value="{{form.name}}" bindinput="nameInput" maxlength="40" placeholder="例如：城南站 · 周末活动"/></view>
+    <view class="grid"><view class="field"><text>活动天数</text><input type="number" value="{{form.days}}" data-key="days" bindinput="input"/></view>
+      <view class="field"><text>一次性活动费 / 物料费（元）</text><input type="digit" value="{{form.activityCost}}" data-key="activityCost" bindinput="input"/></view></view>
+    <view class="note">海报、物料、短信等一次性支出按活动天数分摊；测算时采购单价保持不变。</view>
+    <view class="actions"><button class="btn secondary" bindtap="sample">填入示例</button><button class="btn secondary" bindtap="importRecent" disabled="{{!hasRecent}}">带入最近经营数据</button></view>
+  </view>
+
+  <view class="card"><view class="section-title">02 · 分油气品种填写</view>
+    <view class="muted">油品按升、LNG 按公斤；各品种原销量同比增减，不把升和公斤直接相加。毛利为含税售价减含税采购价。</view>
+    <view class="switch-row"><text>经营 LNG（按公斤计算）</text><switch checked="{{form.hasLng}}" color="#0068ad" bindchange="lngChange"/></view>
+    <view class="marketing-product" wx:for="{{productRows}}" wx:key="key">
+      <view class="marketing-product-head"><text>{{item.name}}</text><text>增值税 {{item.vat * 100}}%</text></view>
+      <view class="grid"><view class="field"><text>{{item.volumeLabel}}</text><input type="number" value="{{item.volume}}" data-index="{{item.index}}" data-key="volume" bindinput="productInput"/></view>
+        <view class="field"><text>{{item.marginLabel}}</text><input type="digit" value="{{item.margin}}" data-index="{{item.index}}" data-key="margin" bindinput="productInput"/></view>
+        <view class="field"><text>{{item.changeLabel}}</text><input type="digit" value="{{item.change}}" data-index="{{item.index}}" data-key="change" bindinput="productInput"/></view>
+        <view class="field"><text>原销量参与比例（%）</text><input type="digit" value="{{item.participation}}" data-index="{{item.index}}" data-key="participation" bindinput="productInput"/></view></view>
+      <view wx:if="{{showAdvanced}}" class="grid"><view class="field"><text>{{item.costLabel}}</text><input type="digit" value="{{item.incrementalCost}}" data-index="{{item.index}}" data-key="incrementalCost" bindinput="productInput"/></view>
+        <view class="field"><text>{{item.promotionLabel}}</text><input type="digit" value="{{item.promotionCost}}" data-index="{{item.index}}" data-key="promotionCost" bindinput="productInput"/></view></view>
+    </view>
+    <button class="btn secondary advanced-button" bindtap="toggleAdvanced">{{showAdvanced ? '收起额外变动费用' : '填写额外变动费用（选填）'}}</button>
+    <view class="note" wx:if="{{showAdvanced}}">其他随销量变化费用按活动前后销量差额计算；活动另增费用只对参与活动的销量计入，即使没有降价或涨价也会计入。</view>
+    <view class="note">未带入经营数据时，售价按参考采购价加所填毛利估算，税费和支付手续费使用默认经营参数；实际活动建议先带入最近经营数据。</view>
+    <view class="note">原有销量按参与比例参加活动；新增销量按各品种原销量同比增加，并默认全部参加该品种活动。</view>
+    <button class="btn" bindtap="calculate">计算保利销量</button>
+  </view>
+
+  <block wx:if="{{result}}">
+    <view class="card marketing-result" id="marketing-result">
+      <view class="metric-label">{{result.status === 'unreachable' ? '当前活动' : '保持原经营利润，日销量至少达到'}}</view>
+      <view class="marketing-main"><text>{{result.mainValue}}</text><text wx:if="{{result.status !== 'unreachable'}}">{{result.mainUnit}}</text></view>
+      <view class="marketing-lng" wx:if="{{result.secondary}}">{{result.secondary}}</view>
+      <view class="marketing-difference">{{result.difference}}</view>
+      <view class="marketing-pills"><text>原销量：{{result.baseline}}</text><text>活动 {{result.days}} 天</text></view>
+    </view>
+
+    <view class="card marketing-chart-card"><view class="section-title">保利交叉图</view>
+      <view class="muted">红线是原利润，蓝线是活动后利润，交点是保利销量。</view>
+      <view class="marketing-legend"><text class="original">— 原利润线</text><text class="campaign">— 活动后利润</text><text class="forecast">● 预计销量</text></view>
+      <canvas type="2d" id="marketingChart" class="marketing-chart"/>
+      <view class="muted marketing-axis">{{result.mixed ? '横轴：相对原销量比例；油品升与 LNG 公斤分别换算' : '横轴：日均销量（油品升或 LNG 公斤）'}}</view>
+      <view class="marketing-forecast"><view class="marketing-preview-title">预计活动日销量</view><view class="marketing-preview-volume">{{preview.volume}}</view>
+        <slider min="0" max="{{sliderMax}}" step="1" value="{{sliderValue}}" activeColor="#0878b7" backgroundColor="#d6e4ed" block-color="#0878b7" bindchanging="sliderChange" bindchange="sliderChange"/>
+        <view class="marketing-drag">↔ 拖动滑杆，模拟不同销量下的利润</view>
+        <view class="marketing-impact {{preview.positive ? 'positive' : ''}}">{{preview.daily}}</view><view class="muted">{{preview.total}}</view></view>
+      <view class="marketing-share" id="marketing-share"><button class="btn" bindtap="generateImage" disabled="{{exporting}}">{{exporting ? '正在生成图片…' : reportImage ? '重新生成分享图片' : '生成分享图片'}}</button>
+        <block wx:if="{{reportImage}}"><view class="actions"><button class="btn secondary" bindtap="saveImage">保存图片</button><button class="btn" bindtap="shareImage">分享图片</button></view>
+          <image class="marketing-report-image" src="{{reportImage}}" mode="widthFix" bindtap="previewImage"/></block></view>
+    </view>
+  </block>
+  <canvas type="2d" id="marketingReportCanvas" class="marketing-report-canvas"/>
+</view>
