@@ -2,9 +2,9 @@
   "pages": [
     "pages/home/home",
     "pages/index/index",
-    "pages/marketing/marketing",
     "pages/investment/investment",
     "pages/break-even/break-even",
+    "pages/marketing/marketing",
     "pages/report/report",
     "pages/guide/guide"
   ],

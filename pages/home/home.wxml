@@ -2,9 +2,9 @@
   <view class="brand"><image src="/images/miniprogram-profit-icon-512.png"/><view class="brand-copy"><view class="title"><text class="title-part">加油（加气）站</text><text class="title-part">利润·投资专用计算器</text></view><view class="muted brand-subtitle"><text class="subtitle-part">免费测算·本地计算·数据安全</text></view></view></view>
   <view class="intro">今天，您想算哪笔账？</view>
   <view class="entry" data-page="index/index" bindtap="open"><view class="eyebrow">01 / 日常经营</view><view class="entry-title">利润计算器 <text>→</text></view><view class="entry-copy">填销量、毛利与日常费用，快速判断一座站的经营盈利能力。</view><view class="entry-bottom">月度 / 年度 · EBITDA（息税折旧摊销前利润）</view></view>
-  <view class="entry" data-page="marketing/marketing" bindtap="open"><view class="eyebrow">02 / 营销活动</view><view class="entry-title">营销活动保利计算器 <text>→</text></view><view class="entry-copy">降价做活动，算每天要多卖多少；涨价提毛利，算销量最多能少多少。</view><view class="entry-bottom">分油气品种 · 保利交叉图 · 图片分享</view></view>
-  <view class="entry" data-page="investment/investment" bindtap="open"><view class="eyebrow">03 / 项目投资</view><view class="entry-title">投资回报计算器 <text>→</text></view><view class="entry-copy">带入经营测算，加上租金、资产、合作和贷款条件，看看赚多少、多久回本。</view><view class="entry-bottom">年度净利润 · 投资收益率 · 回收期</view></view>
-  <view class="entry" data-page="break-even/break-even" bindtap="open"><view class="eyebrow">04 / 销量目标</view><view class="entry-title">盈亏平衡销量计算器 <text>→</text></view><view class="entry-copy">填租金、投入、销量配比和毛利，倒推每天需要卖多少才能达到平衡。</view><view class="entry-bottom">含折旧的财务平衡 · 考虑资金时间价值的投资平衡</view></view>
+  <view class="entry" data-page="investment/investment" bindtap="open"><view class="eyebrow">02 / 项目投资</view><view class="entry-title">投资回报计算器 <text>→</text></view><view class="entry-copy">带入经营测算，加上租金、资产、合作和贷款条件，看看赚多少、多久回本。</view><view class="entry-bottom">年度净利润 · 投资收益率 · 回收期</view></view>
+  <view class="entry" data-page="break-even/break-even" bindtap="open"><view class="eyebrow">03 / 销量目标</view><view class="entry-title">盈亏平衡销量计算器 <text>→</text></view><view class="entry-copy">填租金、投入、销量配比和毛利，倒推每天需要卖多少才能达到平衡。</view><view class="entry-bottom">含折旧的财务平衡 · 考虑资金时间价值的投资平衡</view></view>
+  <view class="entry" data-page="marketing/marketing" bindtap="open"><view class="eyebrow">04 / 营销活动</view><view class="entry-title">营销活动保利计算器 <text>→</text></view><view class="entry-copy">降价做活动，算每天要多卖多少；涨价提毛利，算销量最多能少多少。</view><view class="entry-bottom">分油气品种 · 保利交叉图 · 图片分享</view></view>
   <button class="btn secondary" data-page="guide/guide" bindtap="open">测算口径与财务概念说明</button>
   <view class="footer">v{{version}} · 加油站漫谈<view>数据保存在本机，报告可分享</view></view>
 </view>

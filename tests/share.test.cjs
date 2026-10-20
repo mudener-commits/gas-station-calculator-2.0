@@ -17,11 +17,11 @@ test('转发先完成图片复制，再返回本地文件；重复分享覆盖�
   for (let i = 0; i < 2; i++) {
     const share = ui.share();
     assert.equal(copies.length, i + 1);
-    assert.equal(share.imageUrl, 'wxfile://usr/share-card-v2.png');
+    assert.equal(share.imageUrl, 'wxfile://usr/share-card-v3.png');
     assert.equal(share.path, '/pages/home/home');
     assert.equal(share.title, '加油（加气）站利润·投资专用计算器');
   }
-  assert.deepEqual(copies, Array.from({ length: 2 }, () => ['/images/share-card-5x4.png', 'wxfile://usr/share-card-v2.png']));
+  assert.deepEqual(copies, Array.from({ length: 2 }, () => ['/images/share-card-5x4.png', 'wxfile://usr/share-card-v3.png']));
 });
 test('本地写入失败仍返回代码包封面，不中断分享', () => {
   const ui = load({ env: { USER_DATA_PATH: 'wxfile://usr' }, getFileSystemManager() {

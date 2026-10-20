@@ -258,10 +258,14 @@ test('原内嵌倒推草稿只迁移一次，后续投资编辑不覆盖独立�
 });
 test('首页四入口注册有效，投资页面已移除倒推表单', () => {
   const env=environment(),home=env.load('home');const app=JSON.parse(fs.readFileSync(path.join(root,'app.json')));
-  for(const page of ['index/index','marketing/marketing','investment/investment','break-even/break-even']) {
+  for(const page of ['index/index','investment/investment','break-even/break-even','marketing/marketing']) {
     home.open({currentTarget:{dataset:{page}}});assert.equal(env.calls.at(-1).url,'/pages/'+page);assert.ok(app.pages.includes('pages/'+page));
   }
-  const html=fs.readFileSync(path.join(root,'pages/home/home.wxml'),'utf8');assert.equal((html.match(/class="entry"/g)||[]).length,4);assert.match(html,/营销活动保利计算器/);assert.match(html,/盈亏平衡销量计算器/);
+  const html=fs.readFileSync(path.join(root,'pages/home/home.wxml'),'utf8');assert.equal((html.match(/class="entry"/g)||[]).length,4);
+  const positions=['index/index','investment/investment','break-even/break-even','marketing/marketing'].map(page=>html.indexOf('data-page="'+page+'"'));
+  assert.ok(positions.every((p,i)=>p>=0 && (!i || p>positions[i-1])));
+  assert.match(html,/04 \/ 营销活动/); assert.equal(home.data.version,'3.0.0');
+  assert.deepEqual(app.pages.slice(1,5),positions.map((_,i)=>'pages/'+['index/index','investment/investment','break-even/break-even','marketing/marketing'][i]));
   assert.ok(!fs.readFileSync(path.join(root,'pages/investment/investment.wxml'),'utf8').includes('break-even'));
   const p=env.load('investment');assert.equal(p.calculateBreakEven,undefined);delete global.wx;
 });

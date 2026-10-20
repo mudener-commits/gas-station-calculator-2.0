@@ -223,12 +223,18 @@ test('20 年报告为一个完整长图，无截断、边界不溢出，保留�
   assert.equal(plan.items.filter(l=>l.kind==='image').length,2);
   const size=require('../lib/report-layout').dimensions(plan); assert.ok(size.height<=16000 && size.width>400);
 });
-test('近期只保留 5 条，历史保持独立且旧字段不会影响 2.0 引用', () => {
+test('近期只保留 5 条，3.0 继续读取 2.0 历史并区分 1.x 旧记录', () => {
   const data = new Map(); global.wx = { getStorageSync: k => data.get(k) || '', setStorageSync: (k,v) => data.set(k, structuredClone(v)) };
   const s = require('../lib/storage');
   for(let i=0;i<7;i++) s.add(s.KEYS.recent, s.record(operating.sample(false), 'people', 'month', '站'+i), 5);
   assert.equal(s.list(s.KEYS.recent).length,5); assert.equal(s.list(s.KEYS.history).length,0);
   const legacy = { id:'old', form:{...operating.sample(false),landRent:1000000,totalInvestment:300000}, periodKey:'month' };
   const source = s.source(legacy, 'saved'); near(source.annualEbitda, operating.calculate(operating.sample(false)).annualEbitda); assert.equal(source.legacyInvestment,300000); assert.equal(source.legacy,true);
+  for (const version of ['2.0.0', '3.0.0']) {
+    const modern = s.source({ ...legacy, version }, 'saved');
+    assert.equal(modern.legacy, false); assert.equal(modern.legacyInvestment, 0);
+    assert.equal(modern.version, '3.0.0');
+  }
+  assert.equal(s.record(operating.sample(false), 'people', 'year').version, '3.0.0');
   delete global.wx;
 });
